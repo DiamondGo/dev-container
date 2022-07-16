@@ -4,10 +4,6 @@ cd $SCRIPT_DIR
 
 source $SCRIPT_DIR/constant.sh
 
-USERNAME=$USER
-# staff is already used by debian
-GROUPNAME=macstaff
-
 CONTAINER_NAME=dev-remote
 SOURCE_MAPPING=$1
 if [ -z $SOURCE_MAPPING ]; then
@@ -57,6 +53,7 @@ docker stop $CONTAINER_NAME 2>/dev/null
 docker run \
   --detach \
   --name dev-remote \
+  -v $DOCKER_SOCK:$DOCKER_SOCK \
   -v $HOME/.ssh:/home/$USERNAME/.ssh \
   -v $HOME/Downloads:/home/$USERNAME/downloads \
   -v $(map_source $SOURCE_MAPPING) \

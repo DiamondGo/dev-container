@@ -9,9 +9,6 @@ cd ..
 USERID=$(id -u)
 GROUPID=$(id -g)
 
-USERNAME=$USER
-# staff is already used by debian
-GROUPNAME=macstaff
 
 IMAGE_TAG=dev-remote
 
