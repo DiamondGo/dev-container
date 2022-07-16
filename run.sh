@@ -2,6 +2,8 @@
 SCRIPT_DIR="$( cd -- "$( dirname -- "${BASH_SOURCE[0]:-$0}"; )" &> /dev/null && pwd 2> /dev/null; )"
 cd $SCRIPT_DIR
 
+source $SCRIPT_DIR/constant.sh
+
 USERNAME=$USER
 # staff is already used by debian
 GROUPNAME=macstaff
@@ -58,6 +60,6 @@ docker run \
   -v $HOME/.ssh:/home/$USERNAME/.ssh \
   -v $HOME/Downloads:/home/$USERNAME/downloads \
   -v $(map_source $SOURCE_MAPPING) \
-  -p 2022:2022 \
+  -p $SSH_PORT:$SSH_PORT \
   --expose 2000-65535 \
   $CONTAINER_NAME
