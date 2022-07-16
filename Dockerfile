@@ -19,6 +19,7 @@ ENV SSHPORT=$SSHPORT
 # update
 RUN apt-get update -y
 RUN apt-get upgrade -y
+RUN apt-get install apt-utils -y
 # sshd
 RUN apt-get install openssh-server -y
 RUN ssh-keygen -A
