@@ -51,12 +51,31 @@ ignore_strict_host_checking
 docker stop $CONTAINER_NAME 2>/dev/null
 
 docker run \
+  --net=host \
   --detach \
   --name dev-remote \
+  --privileged=true \
   -v $DOCKER_SOCK:$DOCKER_SOCK \
-  -v $HOME/.ssh:/home/$USERNAME/.ssh \
+  -v $HOME:/home/$USERNAME \
   -v $HOME/Downloads:/home/$USERNAME/downloads \
   -v $(map_source $SOURCE_MAPPING) \
   -p $SSH_PORT:$SSH_PORT \
   --expose 2000-65535 \
   $CONTAINER_NAME
+
+#docker run --net=host \
+#          --cap-add SYS_NICE \
+#          --name cvpdev_$USER \
+#          --privileged=true \
+#          -v /var/run/docker.sock:/var/run/docker.sock \
+#          -v /home/$USER:/home/$USER \
+#          -v /garage/$USER:/garage/$USER \
+#          -v /etc/passwd:/etc/passwd \
+#          -v /etc/shadow:/etc/shadow \
+#          -v /etc/shadow-:/etc/shadow- \
+#          -v /etc/group:/etc/group \
+#          -v /etc/group-:/etc/group- \
+#          --expose $port \
+#          --entrypoint /bin/sh \
+#          -d docker.corp.arista.io/cvp-dev \
+#          -c "chmod 666 /dev/kvm && /usr/sbin/sshd -D -p $port"
