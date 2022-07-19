@@ -51,17 +51,16 @@ ignore_strict_host_checking
 docker stop $CONTAINER_NAME 2>/dev/null
 
 docker run \
-  --net=host \
   --detach \
   --name dev-remote \
   --privileged=true \
   -v $DOCKER_SOCK:$DOCKER_SOCK \
   -v $HOME:/home/$USERNAME \
-  -v $HOME/Downloads:/home/$USERNAME/downloads \
   -v $(map_source $SOURCE_MAPPING) \
   -p $SSH_PORT:$SSH_PORT \
   --expose 2000-65535 \
   $CONTAINER_NAME
+
 
 #docker run --net=host \
 #          --cap-add SYS_NICE \
