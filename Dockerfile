@@ -64,11 +64,11 @@ RUN echo "while true; do sleep 3600; done" >> /root/script/sshd.sh
 RUN chmod +x /root/script/sshd.sh
 
 # prepare gopath
-RUN echo "export GOPATH=\$HOME/go" >> /home/$USERNAME/.bashrc
-RUN echo "export GOROOT=/usr/local/go" >> /home/$USERNAME/.bashrc
-RUN echo "export PATH=\$PATH:\$GOPATH/bin:\$GOROOT/bin" >> /home/$USERNAME/.bashrc
-RUN mkdir -p /home/$USERNAME/go
-RUN chown $USERNAME:$GROUPNAME /home/$USERNAME/go
+#RUN echo "export GOPATH=\$HOME/go" >> /home/$USERNAME/.bashrc
+#RUN echo "export GOROOT=/usr/local/go" >> /home/$USERNAME/.bashrc
+#RUN echo "export PATH=\$PATH:\$GOPATH/bin:\$GOROOT/bin" >> /home/$USERNAME/.bashrc
+#RUN mkdir -p /home/$USERNAME/go
+#RUN chown $USERNAME:$GROUPNAME /home/$USERNAME/go
 
 #RUN ssh-keygen -A
 
