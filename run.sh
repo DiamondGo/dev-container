@@ -4,7 +4,7 @@ cd $SCRIPT_DIR
 
 source $SCRIPT_DIR/constant.sh
 
-CONTAINER_NAME=dev-remote
+CONTAINER_NAME=dev-remote-$USERNAME
 SOURCE_MAPPING=$1
 if [ -z $SOURCE_MAPPING ]; then
     echo "no source mapping"
@@ -52,7 +52,7 @@ docker stop $CONTAINER_NAME 2>/dev/null
 
 docker run \
   --detach \
-  --name dev-remote \
+  --name $CONTAINER_NAME \
   --privileged=true \
   -v $DOCKER_SOCK:$DOCKER_SOCK \
   -v $HOME:/home/$USERNAME \

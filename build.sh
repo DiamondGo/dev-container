@@ -9,10 +9,6 @@ cd ..
 USERID=$(id -u)
 GROUPID=$(id -g)
 
-
-IMAGE_TAG=dev-remote
-
-
 docker rmi $IMAGE_TAG 2>/dev/null
 
 docker build \

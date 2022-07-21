@@ -4,3 +4,4 @@ export USERNAME=$USER
 export GROUPNAME=macstaff
 
 export DOCKER_SOCK=/var/run/docker.sock
+export IMAGE_TAG=dev-remote-$USERNAME
