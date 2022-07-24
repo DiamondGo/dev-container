@@ -28,7 +28,7 @@ RUN sed -i "s/^%sudo\\s*ALL=(ALL:ALL)\\s*ALL$/%sudo   ALL=(ALL:ALL) NOPASSWD:ALL
 RUN sed -i "s/#Port\\s*22/Port $SSHPORT/g" /etc/ssh/sshd_config
 
 # prepare dev software
-RUN apt-get install vim -y
+RUN apt-get install vim net-tools -y
 # install fpm
 RUN apt-get install ruby -y
 RUN gem install fpm
