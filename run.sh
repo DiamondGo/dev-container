@@ -30,25 +30,29 @@ ignore_strict_host_checking () {
     echo "  StrictHostKeyChecking no" >> $ssh_config
   fi
 }
-
-map_source () {
-    LOCAL_SOURCE=$(echo $1 | cut -d ":" -f 1)
-    REMOTE_SOURCE=$(echo $1 | cut -d ":" -f 2)
-    if [[ ! $REMOTE_SOURCE =~ ^/.* ]]; then
-        if [[ $REMOTE_SOURCE =~ ^~/.* ]]; then
-            REMOTE_SOURCE=/home/$USERNAME/${REMOTE_SOURCE:2}
-        else
-            REMOTE_SOURCE=/home/$USERNAME/$REMOTE_SOURCE
-        fi
-    fi
-    echo $LOCAL_SOURCE:$REMOTE_SOURCE
-}
-
 ignore_strict_host_checking 
 
+map_sources () {
+  mappings=""
+  for var in "$@"
+  do
+    LOCAL_SOURCE=$(echo $var | cut -d ":" -f 1)
+    REMOTE_SOURCE=$(echo $var | cut -d ":" -f 2)
+    if [[ ! $REMOTE_SOURCE =~ ^/.* ]]; then
+        if [[ $REMOTE_SOURCE =~ ^~/.* ]]; then
+            REMOTE_SOURCE=$WORKSPACE_DIR/${REMOTE_SOURCE:2}
+        else
+            REMOTE_SOURCE=$WORKSPACE_DIR/$REMOTE_SOURCE
+        fi
+    fi
+    mappings=$mappings" -v $LOCAL_SOURCE:$REMOTE_SOURCE"
+  done
+  echo $mappings
+}
+MAPPINGS=$(map_sources "$@")
 
 
-docker stop $CONTAINER_NAME 2>/dev/null
+#docker stop $CONTAINER_NAME 2>/dev/null
 
 docker run \
   --detach \
@@ -56,25 +60,9 @@ docker run \
   --privileged=true \
   -v $DOCKER_SOCK:$DOCKER_SOCK \
   -v $HOME:/home/$USERNAME \
-  -v $(map_source $SOURCE_MAPPING) \
+  $MAPPINGS \
   -p $SSH_PORT:$SSH_PORT \
   --expose 2000-65535 \
   $CONTAINER_NAME
 
 
-#docker run --net=host \
-#          --cap-add SYS_NICE \
-#          --name cvpdev_$USER \
-#          --privileged=true \
-#          -v /var/run/docker.sock:/var/run/docker.sock \
-#          -v /home/$USER:/home/$USER \
-#          -v /garage/$USER:/garage/$USER \
-#          -v /etc/passwd:/etc/passwd \
-#          -v /etc/shadow:/etc/shadow \
-#          -v /etc/shadow-:/etc/shadow- \
-#          -v /etc/group:/etc/group \
-#          -v /etc/group-:/etc/group- \
-#          --expose $port \
-#          --entrypoint /bin/sh \
-#          -d docker.corp.arista.io/cvp-dev \
-#          -c "chmod 666 /dev/kvm && /usr/sbin/sshd -D -p $port"

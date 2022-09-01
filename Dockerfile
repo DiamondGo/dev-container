@@ -52,9 +52,9 @@ RUN echo $USERNAME:dev | chpasswd
 #RUN chown $USERNAME /var/run/docker.sock # file not exist in this stage
 
 # copy ssh keys
-RUN mkdir -p /home/$USERNAME/.ssh
-RUN chown $USERNAME:$GROUPNAME /home/$USERNAME/.ssh
-RUN chmod 700 /home/$USERNAME/.ssh
+#RUN mkdir -p /home/$USERNAME/.ssh
+#RUN chown $USERNAME:$GROUPNAME /home/$USERNAME/.ssh
+#RUN chmod 700 /home/$USERNAME/.ssh
 
 RUN mkdir -p /root/script
 RUN echo "#!/bin/bash" >> /root/script/sshd.sh
