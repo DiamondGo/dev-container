@@ -18,5 +18,6 @@ docker build \
   --build-arg GROUPNAME=$GROUPNAME \
   --build-arg SCRIPTDIR=$SCRIPT_DIR \
   --build-arg SSHPORT=$SSH_PORT \
+  --build-arg WORKSPACE_DIR=$WORKSPACE_DIR \
   -t $IMAGE_TAG \
   $SCRIPT_DIR

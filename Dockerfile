@@ -7,11 +7,12 @@ ARG GROUPID
 ARG GROUPNAME
 ARG SCRIPTDIR
 ARG SSHPORT
+ARG WORKSPACE_DIR
 
 ENV USERID=$USERID
 ENV USERNAME=$USERNAME
 ENV GROUPID=$GROUPID
-ENV GROUPNAME=$GROUPNAME
+ENV GROUPNAME=$USERNAME
 ENV SCRIPTDIR=$SCRIPTDIR
 ENV SSHPORT=$SSHPORT
 
@@ -22,9 +23,11 @@ RUN apt-get upgrade -y
 # sshd
 RUN apt-get install openssh-server -y
 RUN ssh-keygen -A
-# other package
+# sudo
 RUN apt-get install sudo -y
-RUN sed -i "s/^%sudo\\s*ALL=(ALL:ALL)\\s*ALL$/%sudo   ALL=(ALL:ALL) NOPASSWD:ALL/g" /etc/sudoers
+RUN echo $USERNAME ALL=\(root\) NOPASSWD:ALL > /etc/sudoers.d/$USERNAME \
+    && chmod 0440 /etc/sudoers.d/$USERNAME
+# use custom ssh port
 RUN sed -i "s/#Port\\s*22/Port $SSHPORT/g" /etc/ssh/sshd_config
 
 # prepare dev software
@@ -49,35 +52,73 @@ RUN groupadd -g $GROUPID $GROUPNAME
 RUN useradd -m -s /bin/bash -g $GROUPID -u $USERID $USERNAME
 RUN usermod -G root,sudo,docker $USERNAME
 RUN echo $USERNAME:dev | chpasswd
-#RUN chown $USERNAME /var/run/docker.sock # file not exist in this stage
 
-# copy ssh keys
-#RUN mkdir -p /home/$USERNAME/.ssh
-#RUN chown $USERNAME:$GROUPNAME /home/$USERNAME/.ssh
-#RUN chmod 700 /home/$USERNAME/.ssh
+# for openvscode server
+RUN apt-get update && apt-get install -y --no-install-recommends \
+        git \
+        sudo \
+        wget \
+        libatomic1 \
+    && rm -rf /var/lib/apt/lists/*
 
-RUN mkdir -p /root/script
-RUN echo "#!/bin/bash" >> /root/script/sshd.sh
-RUN echo "/etc/init.d/ssh restart" >> /root/script/sshd.sh
-RUN echo "chown $USERNAME /var/run/docker.sock"
-RUN echo "while true; do sleep 3600; done" >> /root/script/sshd.sh
-RUN chmod +x /root/script/sshd.sh
+WORKDIR /home/
 
-# prepare gopath
-#RUN echo "export GOPATH=\$HOME/go" >> /home/$USERNAME/.bashrc
-#RUN echo "export GOROOT=/usr/local/go" >> /home/$USERNAME/.bashrc
-#RUN echo "export PATH=\$PATH:\$GOPATH/bin:\$GOROOT/bin" >> /home/$USERNAME/.bashrc
-#RUN mkdir -p /home/$USERNAME/go
-#RUN chown $USERNAME:$GROUPNAME /home/$USERNAME/go
+ARG RELEASE_TAG=openvscode-server-v1.70.1
+ARG RELEASE_ORG="gitpod-io"
+ARG OPENVSCODE_SERVER_ROOT="/home/.openvscode-server"
 
-#RUN ssh-keygen -A
+# Downloading the latest VSC Server release and extracting the release archive
+# Rename `openvscode-server` cli tool to `code` for convenience
+RUN if [ -z "${RELEASE_TAG}" ]; then \
+        echo "The RELEASE_TAG build arg must be set." >&2 && \
+        exit 1; \
+    fi && \
+    arch=$(uname -m) && \
+    if [ "${arch}" = "x86_64" ]; then \
+        arch="x64"; \
+    elif [ "${arch}" = "aarch64" ]; then \
+        arch="arm64"; \
+    elif [ "${arch}" = "armv7l" ]; then \
+        arch="armhf"; \
+    fi && \
+    wget https://github.com/${RELEASE_ORG}/openvscode-server/releases/download/${RELEASE_TAG}/${RELEASE_TAG}-linux-${arch}.tar.gz && \
+    tar -xzf ${RELEASE_TAG}-linux-${arch}.tar.gz && \
+    mv -f ${RELEASE_TAG}-linux-${arch} ${OPENVSCODE_SERVER_ROOT} && \
+    cp ${OPENVSCODE_SERVER_ROOT}/bin/remote-cli/openvscode-server ${OPENVSCODE_SERVER_ROOT}/bin/remote-cli/code && \
+    rm -f ${RELEASE_TAG}-linux-${arch}.tar.gz
 
-EXPOSE 2000-65535
+RUN chmod g+rw /home && \
+    mkdir -p $WORKSPACE_DIR && \
+    chown -R $USERNAME:$GROUPNAME $WORKSPACE_DIR && \
+    chown -R $USERNAME:$GROUPNAME ${OPENVSCODE_SERVER_ROOT}
 
-# Set the default container command
-# This can be overridden later when running a container
-ENTRYPOINT ["/root/script/sshd.sh"]
+## startup script
+#RUN mkdir -p $HOME/script
+#RUN echo "#!/bin/bash" >> $HOME/script/sshd.sh
+#RUN echo "sudo /etc/init.d/ssh restart" >> $HOME/script/sshd.sh
+#RUN echo "sudo chown $USERNAME /var/run/docker.sock" >> $HOME/script/sshd.sh
+#RUN echo "while true; do sleep 3600; done" >> $HOME/script/sshd.sh
+#RUN chmod +x $HOME/script/sshd.sh
+#
+##EXPOSE 2000-65535
+#ENTRYPOINT ["/root/script/sshd.sh"]
 
 
-#USER $USERNAME
-#WORKDIR /home/$USERNAME
+
+# user
+USER $USERNAME
+WORKDIR $WORKSPACE_DIR
+
+ENV LANG=C.UTF-8 \
+    LC_ALL=C.UTF-8 \
+    HOME=$WORKSPACE_DIR \
+    USER=$USERNAME \
+    EDITOR=code \
+    VISUAL=code \
+    GIT_EDITOR="code --wait" \
+    OPENVSCODE_SERVER_ROOT=${OPENVSCODE_SERVER_ROOT}
+
+EXPOSE 3000
+
+ENTRYPOINT [ "/bin/sh", "-c", "sudo /etc/init.d/ssh restart && exec ${OPENVSCODE_SERVER_ROOT}/bin/openvscode-server --host 0.0.0.0 --without-connection-token \"${@}\"", "--" ]
+#ENTRYPOINT [ "/bin/sh", "-c", "exec ${OPENVSCODE_SERVER_ROOT}/bin/openvscode-server --host 0.0.0.0 --without-connection-token \"${@}\"", "--" ]

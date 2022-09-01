@@ -62,7 +62,8 @@ docker run \
   -v $HOME:/home/$USERNAME \
   $MAPPINGS \
   -p $SSH_PORT:$SSH_PORT \
-  --expose 2000-65535 \
+  -p $HOST_HTTP_PORT:$HTTP_PORT \
   $CONTAINER_NAME
+  #--expose 2000-65535 \
 
 
