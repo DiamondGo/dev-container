@@ -10,3 +10,4 @@ export WORKSPACE_DIR=/home/$USER
 export DOCKER_SOCK=/var/run/docker.sock
 export IMAGE_TAG=dev-remote-$USERNAME
 
+export SECRET_TOKEN=changeyourpassword

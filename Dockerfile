@@ -8,6 +8,7 @@ ARG GROUPNAME
 ARG SCRIPTDIR
 ARG SSHPORT
 ARG WORKSPACE_DIR
+ARG SECRET_TOKEN
 
 ENV USERID=$USERID
 ENV USERNAME=$USERNAME
@@ -121,4 +122,4 @@ ENV LANG=C.UTF-8 \
 EXPOSE 3000
 
 ENTRYPOINT [ "/bin/sh", "-c", "sudo /etc/init.d/ssh restart && exec ${OPENVSCODE_SERVER_ROOT}/bin/openvscode-server --host 0.0.0.0 --without-connection-token \"${@}\"", "--" ]
-#ENTRYPOINT [ "/bin/sh", "-c", "exec ${OPENVSCODE_SERVER_ROOT}/bin/openvscode-server --host 0.0.0.0 --without-connection-token \"${@}\"", "--" ]
+#ENTRYPOINT [ "/bin/sh", "-c", "sudo /etc/init.d/ssh restart && exec ${OPENVSCODE_SERVER_ROOT}/bin/openvscode-server --host 0.0.0.0 -connection-token ${SECRET_TOKEN} \"${@}\"", "--" ]
