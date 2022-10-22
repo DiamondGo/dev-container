@@ -64,47 +64,15 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
         libatomic1 \
     && rm -rf /var/lib/apt/lists/*
 
-WORKDIR /home/
-
-ARG RELEASE_TAG=openvscode-server-v1.70.1
-ARG RELEASE_ORG="gitpod-io"
-ARG OPENVSCODE_SERVER_ROOT="/home/.openvscode-server"
-
-# Downloading the latest VSC Server release and extracting the release archive
-# Rename `openvscode-server` cli tool to `code` for convenience
-RUN if [ -z "${RELEASE_TAG}" ]; then \
-        echo "The RELEASE_TAG build arg must be set." >&2 && \
-        exit 1; \
-    fi && \
-    arch=$(uname -m) && \
-    if [ "${arch}" = "x86_64" ]; then \
-        arch="x64"; \
-    elif [ "${arch}" = "aarch64" ]; then \
-        arch="arm64"; \
-    elif [ "${arch}" = "armv7l" ]; then \
-        arch="armhf"; \
-    fi && \
-    wget https://github.com/${RELEASE_ORG}/openvscode-server/releases/download/${RELEASE_TAG}/${RELEASE_TAG}-linux-${arch}.tar.gz && \
-    tar -xzf ${RELEASE_TAG}-linux-${arch}.tar.gz && \
-    mv -f ${RELEASE_TAG}-linux-${arch} ${OPENVSCODE_SERVER_ROOT} && \
-    cp ${OPENVSCODE_SERVER_ROOT}/bin/remote-cli/openvscode-server ${OPENVSCODE_SERVER_ROOT}/bin/remote-cli/code && \
-    rm -f ${RELEASE_TAG}-linux-${arch}.tar.gz
-
-RUN chmod g+rw /home && \
-    mkdir -p $WORKSPACE_DIR && \
-    chown -R $USERNAME:$GROUPNAME $WORKSPACE_DIR && \
-    chown -R $USERNAME:$GROUPNAME ${OPENVSCODE_SERVER_ROOT}
-
-## startup script
-#RUN mkdir -p $HOME/script
-#RUN echo "#!/bin/bash" >> $HOME/script/sshd.sh
-#RUN echo "sudo /etc/init.d/ssh restart" >> $HOME/script/sshd.sh
-#RUN echo "sudo chown $USERNAME /var/run/docker.sock" >> $HOME/script/sshd.sh
-#RUN echo "while true; do sleep 3600; done" >> $HOME/script/sshd.sh
-#RUN chmod +x $HOME/script/sshd.sh
+# startup script
+RUN mkdir -p $HOME/script
+RUN echo "#!/bin/bash" >> $HOME/script/sshd.sh
+RUN echo "sudo /etc/init.d/ssh restart" >> $HOME/script/sshd.sh
+RUN echo "sudo chown $USERNAME /var/run/docker.sock" >> $HOME/script/sshd.sh
+RUN echo "while true; do sleep 3600; done" >> $HOME/script/sshd.sh
+RUN chmod +x $HOME/script/sshd.sh
 #
 ##EXPOSE 2000-65535
-#ENTRYPOINT ["/root/script/sshd.sh"]
 
 # build essential
 RUN apt-get update -y
@@ -116,20 +84,11 @@ RUN tar xzvf /tmp/$GO_PACKAGE -C /usr/local/
 RUN rm -f /tmp/$GO_PACKAGE
 
 
-# user
-USER $USERNAME
-WORKDIR $WORKSPACE_DIR
 
 ENV LANG=C.UTF-8 \
     LC_ALL=C.UTF-8 \
     HOME=$WORKSPACE_DIR \
-    USER=$USERNAME \
-    EDITOR=code \
-    VISUAL=code \
-    GIT_EDITOR="code --wait" \
-    OPENVSCODE_SERVER_ROOT=${OPENVSCODE_SERVER_ROOT}
+    USER=$USERNAME
 
-EXPOSE 3000
 
-ENTRYPOINT [ "/bin/sh", "-c", "sudo /etc/init.d/ssh restart && exec ${OPENVSCODE_SERVER_ROOT}/bin/openvscode-server --host 0.0.0.0 --without-connection-token \"${@}\"", "--" ]
-#ENTRYPOINT [ "/bin/sh", "-c", "sudo /etc/init.d/ssh restart && exec ${OPENVSCODE_SERVER_ROOT}/bin/openvscode-server --host 0.0.0.0 -connection-token ${SECRET_TOKEN} \"${@}\"", "--" ]
+ENTRYPOINT ["/root/script/sshd.sh"]
