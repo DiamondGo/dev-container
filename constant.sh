@@ -7,6 +7,8 @@ export GROUPNAME=macstaff
 
 export WORKSPACE_DIR=/home/$USER
 
+export GO_PACKAGE=go1.19.2.linux-amd64.tar.gz
+
 export DOCKER_SOCK=/var/run/docker.sock
 export IMAGE_TAG=dev-remote-$USERNAME
 

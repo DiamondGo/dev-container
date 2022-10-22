@@ -20,5 +20,6 @@ docker build \
   --build-arg SSHPORT=$SSH_PORT \
   --build-arg WORKSPACE_DIR=$WORKSPACE_DIR \
   --build-arg SECRET_TOKEN=$SECRET_TOKEN \
+  --build-arg GO_PACKAGE=$GO_PACKAGE \
   -t $IMAGE_TAG \
   $SCRIPT_DIR

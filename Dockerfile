@@ -1,5 +1,5 @@
 # set golang as the base image of the Dockerfile
-FROM golang:latest
+FROM debian:latest
 
 ARG USERID
 ARG USERNAME
@@ -9,6 +9,7 @@ ARG SCRIPTDIR
 ARG SSHPORT
 ARG WORKSPACE_DIR
 ARG SECRET_TOKEN
+ARG GO_PACKAGE
 
 ENV USERID=$USERID
 ENV USERNAME=$USERNAME
@@ -16,6 +17,7 @@ ENV GROUPID=$GROUPID
 ENV GROUPNAME=$USERNAME
 ENV SCRIPTDIR=$SCRIPTDIR
 ENV SSHPORT=$SSHPORT
+ENV GO_PACKAGE=$GO_PACKAGE
 
 
 # update
@@ -104,6 +106,14 @@ RUN chmod g+rw /home && \
 ##EXPOSE 2000-65535
 #ENTRYPOINT ["/root/script/sshd.sh"]
 
+# build essential
+RUN apt-get update -y
+RUN apt-get install build-essential -y
+
+# install go
+RUN wget https://go.dev/dl/$GO_PACKAGE -O /tmp/$GO_PACKAGE
+RUN tar xzvf /tmp/$GO_PACKAGE -C /usr/local/
+RUN rm -f /tmp/$GO_PACKAGE
 
 
 # user
