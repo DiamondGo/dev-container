@@ -54,16 +54,35 @@ MAPPINGS=$(map_sources "$@")
 
 #docker stop $CONTAINER_NAME 2>/dev/null
 
+# docker run \
+#   --detach \
+#   --name $CONTAINER_NAME \
+#   --privileged=true \
+#   -v $DOCKER_SOCK:$DOCKER_SOCK \
+#   -v $HOME:/home/$USERNAME \
+#   $MAPPINGS \
+#   -p $SSH_PORT:$SSH_PORT \
+#   $CONTAINER_NAME
+#   #--expose 2000-65535 \
+#   #-p $HOST_HTTP_PORT:$HTTP_PORT \
+
+
 docker run \
-  --detach \
   --name $CONTAINER_NAME \
+  --restart always \
   --privileged=true \
-  -v $DOCKER_SOCK:$DOCKER_SOCK \
+  --mount source=x64common,target=/home \
+  --mount source=none,target=/home/$USERNAME/.docker \
   -v $HOME:/home/$USERNAME \
+  -v $DOCKER_SOCK:$DOCKER_SOCK \
   $MAPPINGS \
   -p $SSH_PORT:$SSH_PORT \
-  -p $HOST_HTTP_PORT:$HTTP_PORT \
-  $CONTAINER_NAME
+  -d $CONTAINER_NAME
   #--expose 2000-65535 \
+  #-p $HOST_HTTP_PORT:$HTTP_PORT \
+  #--expose $SSH_PORT \
+  #-v x64common:/home \ 
+  # -v $DOCKER_SOCK:$DOCKER_SOCK \
+  #--cap-add SYS_NICE \
 
 

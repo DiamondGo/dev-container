@@ -1,4 +1,4 @@
-export SSH_PORT=3022
+export SSH_PORT=6666
 export HTTP_PORT=3000
 export HOST_HTTP_PORT=3000
 export USERNAME=$USER
